@@ -21,7 +21,7 @@ function Routes() {
             component={Shedule}/>
           <Route 
             path="*"
-            children={Page404} />
+            component={Page404} />
       </Switch>
     </BrowserRouter>
   );
