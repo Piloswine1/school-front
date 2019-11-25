@@ -17,7 +17,7 @@ function ShedulePage(props){
 	}
 
 	return(
-		<div id="all-page">
+		<div id="ShedulePage">
 			<div id="search-bar">
 	
 				<label>Курс:</label>
@@ -79,6 +79,7 @@ function ShedulePage(props){
 	);
 }
 
+//Подумать над этим блоком, скорее всего поменять, убрать кнопку
 function Shedule(){
 	const [data,setData] = useState({available:false,body:{facultys:[],courses:[]}});
 	return(<div>
@@ -97,47 +98,91 @@ function Shedule(){
 
 function Table(props){
 	const [data,setData] = useState(props.data);
-	const [toPop,setToPop] = useState(props.data.courses.map(()=>false));
-	const [groups,setGroups] = useState([]);
+	const [groups,setGroups] = useState({course:null,faculty:null,arr:[]});
 
 	useEffect(()=>{
 		setData(props.data);
-		setToPop(props.data.courses.map(()=>false));
-	},[props.data]);
-    
-	function loadGroups(cours,fac){
-    	new Promise((ok,err)=>{ok(["БN1-1-1-19","МN1-1-1-19"])}).then((e)=>setGroups(e));
+		//сброс анимации при изменении данных
+		cleanUpAnimation();
 
+	},[props.data]);
+
+	function cleanUpAnimation() {
+		//очистка анимации для блоков в массиве ['1','2']		
+		for (let num in ["1","2"]){
+		const nodes = document.getElementsByClassName("drop-down-"+num);
+		for (let i=0;i<nodes.length;i++) nodes[i].style.maxHeight=null;
+		}
 	}
-	/*Все менять! слишком громоздко*/
-	return(<div>
+    
+	function loadGroups(course,fac){
+		if (groups.course===course && groups.faculty===fac) return;
+
+		//Добавить фетч + сделать подгрузку новых групп (сейчас происходит перезапись)
+    	const newGrops={course:course,faculty:fac,arr:(course==="1")?["БН1-1-1-19"]:["МН1-2-1-19"]};
+    	//
+
+    	setGroups(newGrops);
+	}
+
+	function invokeDrop(e){
+    	if (e === null) return;
+    	if (e.style.maxHeight){
+    	  e.style.maxHeight = null;
+    	} else {
+    	  e.style.maxHeight = e.scrollHeight + "px";
+    	}
+	}
+
+	function clickOnCourse(e){
+		if (e===null) console.log(new Error("got null"));
+		const elem=e.target.nextSibling;
+		invokeDrop(elem);
+	}
+
+	function clickOnFac(e,course,fac){
+		if (e===null) console.log(new Error("got null"));
+		loadGroups(course,fac);
+		const elem=e.target.nextSibling;
+	}
+
+	/*Еще подумать над компоновкой*/
+	return(<div  id="course-block">
 		{
 			data.courses.map((course,num)=><div key={num}>
 					<h3 
-						onClick={()=>{
-							let time=0;
-							if (toPop[num]) {
-								const node = document.getElementById("drop-"+num);
-								if (node === null) return;
-								node.className="drop-up";
-								time=600;
-							}
-							setTimeout(function() {setToPop(toPop.map((e_,num_)=>(num===num_)?!e_:e_))}, time);;
-						}} 
+						onClick={(e)=>clickOnCourse(e)} 
 					> {course}-й курс </h3>
-					{(toPop[num])?<div id={"drop-"+num} className="drop-down">
-						{data.facultys.map((fuc,num2)=>
+
+					<div className="drop-down-1">
+						{data.facultys.map((fac,num2)=>
 							<div key={""+num+num2} >
-							<h4 
-								onClick={()=>loadGroups(course,fuc)} 
-							> Факультет {fuc} </h4>
-							{groups.map((e,num3)=><h5 key={""+num+num2+num3}>{e}</h5>)}
+								<h4 
+									onClick={(e)=>clickOnFac(e,course,fac)} 
+								> Факультет {fac} </h4>
+								{/*Поменять условие, чтобы отображалось несколько групп (сейчас отображается только одна)*/}
+								{(groups.course===course && groups.faculty===fac)?<GroupsBlock data={groups} />:null}
 							</div>
 						)}
-							</div>:null}
+					</div>
+
 				</div>)
 		}
 	</div>);
 }
+
+function GroupsBlock(props){
+		const [data,setData] = useState(props.data.arr);
+
+		useEffect(()=>{
+			setData(props.data.arr);
+			//мб подумать над анимацией (при mount блока делать анимацию)
+			//анимация все еще некорректно отображаается
+		},[props.data]);
+
+		return( <div >
+					{data.map((e,num)=><h5 key={""+num}>{e}</h5>)}
+				</div>);
+	}
 
 export default Shedule;
