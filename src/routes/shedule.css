@@ -1,0 +1,33 @@
+/*Подумать над анимацией*/
+.drop-down{
+	animation-duration: 0.5s;
+	animation-timing-function: linear;
+	animation-fill-mode: forwards;
+    animation-name: drop_down;
+    overflow: hidden;
+}
+
+@keyframes drop_down{
+	from{
+      	max-height: 0px;
+	}
+	to{
+      	max-height: 1000px;
+	}
+}
+.drop-up{
+	animation-duration: 0.5s;
+	animation-timing-function: linear;
+	animation-fill-mode: forwards;
+    animation-name: drop_up;
+    overflow: hidden;
+}
+
+@keyframes drop_up{
+	from{
+      	max-height: 1000px;
+	}
+	to{
+      	max-height: 0px;
+	}
+}
