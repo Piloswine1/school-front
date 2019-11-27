@@ -1,13 +1,44 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState,useEffect,Fragment} from 'react';
+import {Link} from 'react-router-dom';
+import {filter,Loader,concatUnique,loadGroups} from './essentials';
 import './shedule.css';
 
+//Подумать над этим блоком, скорее всего поменять, убрать кнопку
+//________________________________________________________________
+function Shedule(){
+	const [data,setData] = useState({available:false,body:{}});
+
+	function loadBody() {
+		return new Promise((resolve,reject)=>{
+			setTimeout(()=>resolve({
+							courses:["1","2","3","4","5","6"],
+							facultys:["H1","H2","H3","H4","H5","H6","H7"]
+						}), 600);
+		});
+	}
+
+	useEffect(()=>{
+			loadBody()
+			.then((e)=>{
+				setData({available:true,body:e});
+			})
+			.catch((err)=>console.log(err));
+		});
+
+	return(<div>
+			{data.available?
+				<ShedulePage data={data.body} />
+				:
+				<h1>Loading...</h1>
+			}
+		</div>);
+}
+//_________________________________________________________________
+
 function ShedulePage(props){
-	const [data,setData] = useState(props.data);
+	const data = props.data;
 	const [course, setCourse] = useState("");
 	const [faculty, setFaculty] = useState("");
-	const [group, setGroup] = useState("");
-	//возможно поменять
-	const [disabled,setDisabled] = useState(true);
 	const [toDisplay,setToDisplay] = useState(props.data);
 
 	function isValidInput(){
@@ -42,147 +73,99 @@ function ShedulePage(props){
 		 			{data.facultys.map((e,key)=><option key={key} value={e} />)}	
 		 		</datalist>
 
-		 		{/*Скорее всего перенести это на запрос к серверу, долго фильтровать*/}
 		 		<button onClick={()=>{
 		 			if (!isValidInput()) return;
 		 			const filterCourse=(course===""?data.courses:data.courses.filter((e)=>e===course));
 		 			const filterFaculty=(faculty===""?data.facultys:data.facultys.filter((e)=>e===faculty));
-
-		 			// const filterGroup=(group===""?filterOrient:filterOrient.map((e)=>{
-		 			// 		if (!e.facultys.some((sube)=>sube.groups.includes(group))) return;
-		 			// 		return ({
-		 			// 			course:e.course,
-		 			// 			facultys:e.facultys.map((sube)=>)
-		 			// 		});
-		 			// 	}));
-
 		 			const newToDisplay={
 		 				courses:filterCourse,
 		 				facultys:filterFaculty
 		 			}
 		 			setToDisplay(newToDisplay);
 		 		}}>Find</button>
-				
-				<div>
-				<label>Группа:</label>
-				<input 
-					className="group-input"
-					value={group} 
-					onChange={(e)=>setGroup(e.target.value)} 
-					disabled={disabled}
-				  />
-				</div>
 
 			</div>
-			<Table data={toDisplay} />
+			<DataTable data={toDisplay} />
 		</div>
 	);
 }
 
-//Подумать над этим блоком, скорее всего поменять, убрать кнопку
-function Shedule(){
-	const [data,setData] = useState({available:false,body:{facultys:[],courses:[]}});
-	return(<div>
-		{data.available?<ShedulePage data={data.body} />:<button onClick={()=>{
-			const newData={
-				available:true,
-				body:{
-					courses:["1","2","3","4","5","6"],
-					facultys:["Н1","Н2","Н3","Н4","Н5","Н6","Н7"]
-				}
-			}
-			setData(newData);
-		}}>Get this data</button>}
-	</div>);
-}
 
-function Table(props){
-	const [data,setData] = useState(props.data);
-	const [groups,setGroups] = useState({course:null,faculty:null,arr:[]});
+function DataTable(props){
+	const [data,setData]=useState(props.data);
+	const [toShow,setToShow]=useState(false);
 
 	useEffect(()=>{
+		const newToShow=props.data.courses.map(()=>false);
+		setToShow(newToShow);
 		setData(props.data);
-		//сброс анимации при изменении данных
-		cleanUpAnimation();
-
 	},[props.data]);
 
-	function cleanUpAnimation() {
-		//очистка анимации для блоков в массиве ['1','2']		
-		for (let num in ["1","2"]){
-		const nodes = document.getElementsByClassName("drop-down-"+num);
-		for (let i=0;i<nodes.length;i++) nodes[i].style.maxHeight=null;
-		}
+	function handleClick(num){
+		const newToShow=toShow.map((e,num_)=>(num===num_)?!e:e);
+		setToShow(newToShow);
 	}
-    
-	function loadGroups(course,fac){
-		if (groups.course===course && groups.faculty===fac) return;
-
-		//Добавить фетч + сделать подгрузку новых групп (сейчас происходит перезапись)
-    	const newGrops={course:course,faculty:fac,arr:(course==="1")?["БН1-1-1-19"]:["МН1-2-1-19"]};
-    	//
-
-    	setGroups(newGrops);
-	}
-
-	function invokeDrop(e){
-    	if (e === null) return;
-    	if (e.style.maxHeight){
-    	  e.style.maxHeight = null;
-    	} else {
-    	  e.style.maxHeight = e.scrollHeight + "px";
-    	}
-	}
-
-	function clickOnCourse(e){
-		if (e===null) console.log(new Error("got null"));
-		const elem=e.target.nextSibling;
-		invokeDrop(elem);
-	}
-
-	function clickOnFac(e,course,fac){
-		if (e===null) console.log(new Error("got null"));
-		loadGroups(course,fac);
-		const elem=e.target.nextSibling;
-	}
-
-	/*Еще подумать над компоновкой*/
-	return(<div  id="course-block">
-		{
-			data.courses.map((course,num)=><div key={num}>
-					<h3 
-						onClick={(e)=>clickOnCourse(e)} 
-					> {course}-й курс </h3>
-
-					<div className="drop-down-1">
-						{data.facultys.map((fac,num2)=>
-							<div key={""+num+num2} >
-								<h4 
-									onClick={(e)=>clickOnFac(e,course,fac)} 
-								> Факультет {fac} </h4>
-								{/*Поменять условие, чтобы отображалось несколько групп (сейчас отображается только одна)*/}
-								{(groups.course===course && groups.faculty===fac)?<GroupsBlock data={groups} />:null}
-							</div>
-						)}
-					</div>
-
-				</div>)
-		}
-	</div>);
+	
+	return (<div 
+		id="data-table"
+		>
+		{data.courses.map((course,num)=>
+			<Fragment key={num}>
+				<h2
+					onClick={()=>handleClick(num)}
+				>{course}-Й Курс</h2>
+					{(toShow[num])?<CourseBlock key={num} data={{course:course,facultys:data.facultys}} />:null}
+			</Fragment>)}
+		</div>);
 }
 
-function GroupsBlock(props){
-		const [data,setData] = useState(props.data.arr);
+function CourseBlock(props){
+	const [course,facultys]=[props.data.course,props.data.facultys];
 
-		useEffect(()=>{
-			setData(props.data.arr);
-			//мб подумать над анимацией (при mount блока делать анимацию)
-			//анимация все еще некорректно отображаается
-		},[props.data]);
+	return (<div id="course-block">
+			{facultys.map((faculty,num)=>
+				<Fragment key={num}>
+					<FacultyBlock data={{course:course,faculty:faculty}} />
+				</Fragment>)}
+			</div>);
+}
 
-		return( <div >
-					{data.map((e,num)=><h5 key={""+num}>{e}</h5>)}
-				</div>);
+function FacultyBlock(props) {
+	const [course,faculty] = [props.data.course,props.data.faculty];
+	const [groups,setGroups] = useState([]);
+	const [status,setStatus] = useState("close");
+
+	useEffect(()=>{
+		if (status==="close") return;
+		loadGroups(course,faculty)
+		.then((answ)=>{
+			if (status==="pending"){
+				if (answ.length===0) setStatus("nodata"); else {
+				setGroups(concatUnique(groups,answ));
+				setStatus("open");
+				}
+				return;
+			}
+			if (status==="open")
+				if (answ===groups) return; 
+				else {
+					setGroups(concatUnique(groups,answ));
+					return;
+				}
+			console.log(new Error("unknow status",status));
+		})
+		.catch((err)=>console.log(err));
+	},[status]);
+
+	function handleClick() { 
+		if (groups.length===0 && status==="close") setStatus("pending"); else
+		setStatus((status==="close")?"open":"close");
 	}
+
+	return( <div id="faculty-block">
+					<h3 onClick={()=>handleClick()}>Факультет {faculty}</h3>
+					{(status==="open")?<h4>OK</h4>:<Loader data={status}/>}
+			</div>);
+}
 
 export default Shedule;
