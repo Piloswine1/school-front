@@ -1,33 +1,27 @@
 import React, { useState,useEffect,Fragment} from 'react';
 import {Link} from 'react-router-dom';
-import {filter,Loader,concatUnique,loadGroups} from './essentials';
+import {Loader,concatUnique,loadGroups,loadAllBody} from './essentials';
 import './shedule.css';
 
 //Подумать над этим блоком, скорее всего поменять, убрать кнопку
 //________________________________________________________________
 function Shedule(){
-	const [data,setData] = useState({available:false,body:{}});
-
-	function loadBody() {
-		return new Promise((resolve,reject)=>{
-			setTimeout(()=>resolve({
-							courses:["1","2","3","4","5","6"],
-							facultys:["H1","H2","H3","H4","H5","H6","H7"]
-						}), 600);
-		});
-	}
+	const [data,setData]=useState({});
+	const [available,setAvailable]=useState(false);
 
 	useEffect(()=>{
-			loadBody()
+			if (available) return;
+			loadAllBody()
 			.then((e)=>{
-				setData({available:true,body:e});
+				setData(e);
+				setAvailable(true);
 			})
 			.catch((err)=>console.log(err));
-		});
+		},[available]);
 
 	return(<div>
-			{data.available?
-				<ShedulePage data={data.body} />
+			{available?
+				<ShedulePage data={data} />
 				:
 				<h1>Loading...</h1>
 			}
@@ -82,7 +76,12 @@ function ShedulePage(props){
 		 				facultys:filterFaculty
 		 			}
 		 			setToDisplay(newToDisplay);
-		 		}}>Find</button>
+		 		}}>Найти</button>
+
+		 		<button onClick={()=>setToDisplay({
+		 			courses:data.courses,
+		 			facultys:data.facultys
+		 		})}>Показать все группы</button>
 
 			</div>
 			<DataTable data={toDisplay} />
@@ -136,22 +135,24 @@ function FacultyBlock(props) {
 	const [status,setStatus] = useState("close");
 
 	useEffect(()=>{
-		if (status==="close") return;
+		if (status==="close" || status==="nodata") return;
 		loadGroups(course,faculty)
 		.then((answ)=>{
 			if (status==="pending"){
-				if (answ.length===0) setStatus("nodata"); else {
+				if (answ.length===0) setStatus("nodata"); 
+				else {
 				setGroups(concatUnique(groups,answ));
 				setStatus("open");
 				}
 				return;
 			}
-			if (status==="open")
+			if (status==="open"){
 				if (answ===groups) return; 
 				else {
 					setGroups(concatUnique(groups,answ));
 					return;
 				}
+			}
 			console.log(new Error("unknow status",status));
 		})
 		.catch((err)=>console.log(err));
@@ -164,7 +165,7 @@ function FacultyBlock(props) {
 
 	return( <div id="faculty-block">
 					<h3 onClick={()=>handleClick()}>Факультет {faculty}</h3>
-					{(status==="open")?<h4>OK</h4>:<Loader data={status}/>}
+					{(status==="open")?<h4>{groups.reduce((red,curr,index)=>(index===0)?red+curr:red+","+curr,"")}</h4>:<Loader data={status}/>}
 			</div>);
 }
 

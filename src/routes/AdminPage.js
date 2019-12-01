@@ -1,4 +1,5 @@
 import React from "react";
+import {Link} from 'react-router-dom';
 
 function AdminPage(props) {
 
@@ -7,10 +8,8 @@ function AdminPage(props) {
 	}
 	
 	return(<div id="AdminPage">
-		<button>Добавить группу</button>
-	{/*сделать изменение по клику на группу*/}
-		<button>Изменить группу</button>
-
+		<Link to="/admin/group-editor">Редактор групп</Link>
+		<button>Редактор расписания</button>
 		</div>);
 }
 
