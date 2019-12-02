@@ -1,0 +1,12 @@
+#data-table h2,h3,h4,h5,h6{
+	margin:0px;
+}
+#data-table h3{
+	color: blue;
+}
+#data-table h4{
+	color: green;
+}
+#data-table h6{
+	color: red;
+}
