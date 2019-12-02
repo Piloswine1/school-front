@@ -83,28 +83,22 @@ function DayDialog(props) {
 	}
 	if (type==="add"){
 		const curr=new Date();
-		toDate=curr.getDate()+'-'+(curr.getMonth()+1)+'-'+curr.getFullYear();
+		toDate=curr.getFullYear()+'-'+curr.getMonth()+'-'+curr.getDate();
 		toLessons=[];
 	}
 	const [open,setOpen]=useState(false);
-
-	// useEffect(()=>{
-	// 	if (type!=="change") return;
-	// 	const day=props.data.day;
-	// 	setDate(day.date);
-	// 	setLessons(day.body);
-	// },[props.data.day]);
 
 
 	function DayDialogBody(props) {
 		const [date,setDate]=useState(toDate);
 		const [lessons,setLessons]=useState(toLessons);
 		const [lesson,setLesson]=useState("");
+		const [toRemove,setToRemove]=useState([]);
 
 		function handleAction(){
 			action({
 				date:date,
-				body:lessons
+				body:lessons.filter((e,num)=>!toRemove.includes(num))
 			});
 			close();
 		}
@@ -112,6 +106,10 @@ function DayDialog(props) {
 			if (lesson==="") return;
 			setLessons(lessons.concat(lesson.split(",")));
 			setLesson("");
+		}
+		function handleRemove(num) {
+			if (toRemove.includes(num)) setToRemove(toRemove.filter((e)=>e!==num));
+			else setToRemove(toRemove.concat(num));
 		}
 		function close() {
 			setLessons(toLessons);
@@ -123,11 +121,16 @@ function DayDialog(props) {
 					<label>Дата</label>
 					<input value={date} onChange={(e)=>setDate(e.target.value)}></input>
 					<label>Занятия</label>
-					{lessons.map((e,num)=><h3 key={num}>{e}</h3>)}
+					{lessons.map((e,num)=>
+						<h3 
+							key={num}
+							onClick={()=>handleRemove(num)}
+							style={{textDecoration:(toRemove.includes(num))?"line-through":null}}
+						>{e}</h3>)}
 					<input value={lesson} onChange={(e)=>setLesson(e.target.value)}></input>
 					<button onClick={()=>handlePushLesson()}>+</button>
 					<div>
-						<button onClick={()=>handleAction()}>Добавить</button>
+						<button onClick={()=>handleAction()}>Сохранить</button>
 						<button onClick={()=>close()}>Закрыть</button>
 					</div>
 				</div>);

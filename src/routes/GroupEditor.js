@@ -54,7 +54,7 @@ function Editor(props) {
 	const [setGroups,setCourses,setFacultys]=props.data.setters;
 	const [toShow,setToShow]=useState(props.data.meta);
 	const [open,setOpen]=useState(false);
-	const [dialogGroup,setDialogGroup]=useState("");
+	const [dialogGroup,setDialogGroup]=useState(null);
 
 	function addGroup(e) {
 		if (groups.includes(e)) return;
@@ -101,19 +101,18 @@ function Editor(props) {
 	function openDialogWithFields(course,faculty) {
 		document.body.style.overflow="hidden";
 		setDialogGroup('-'+faculty+'-'+course+'-');
-		setOpen(true);
 	}
 
 	return(<Fragment>
-		{(open)?<GroupDialog 
-					data={{ type:"global",
-							group:dialogGroup,
-							saveAction:addGroup,
-							closeAction:()=>{
-								document.body.style.overflow=null;
-								setOpen(false);
-							}}}
-				/>:null}
+		{(dialogGroup)?<GroupDialog 
+							data={{ type:"global",
+									group:dialogGroup,
+									saveAction:addGroup,
+									closeAction:()=>{
+										document.body.style.overflow=null;
+										setDialogGroup(null);
+									}}}
+						/>:null}
 		<button onClick={()=>reloadAction()}>Перезагрузить</button>
 		<ToolBar data={{meta:data,setToShow:setToShow}}/>
 		<DataField data={{toShow:toShow,groups:groups,actions:{
@@ -181,10 +180,8 @@ function DataField(props) {
 	return(<div id="data-field">
 			{data.courses.map((course,num)=><div key={''+num}>
 				<h2>{course}-курс</h2>
-				{/*<button onClick={()=>action.deleteCourse(course)}>Удалить Курс {course}</button>*/}
 				{data.facultys.map((faculty,num_)=><div key={''+num+num_}>
 					<h3>Факультет {faculty}</h3>
-					{/*<button onClick={()=>action.deleteFaculty(faculty)}>Удалить Факультет {faculty}</button>*/}
 					<h4>Группы:</h4>
 					{groups.map((group,num__)=>(testGroup(group,course,faculty))?
 						<Element 
@@ -211,7 +208,13 @@ function Element(props) {
 
 	return(<Fragment>
 		<h5 onClick={()=>setOpen(!open)}>{group}</h5>
-		{(open)?<GroupDialog data={{type:"local",group:group,saveAction:(e)=>changeGroup(group,e),closeAction:()=>setOpen(false)}}/>:null}
+		{(open)?<GroupDialog 
+					data={{type:"local",
+							group:group,
+							saveAction:(e)=>changeGroup(group,e),
+							closeAction:()=>setOpen(false)
+						  }}
+				/>:null}
 		</Fragment>)
 }
 
@@ -223,9 +226,21 @@ function GroupDialog(props) {
 	const [course,setCourse]=useState(arr[2]);
 	const [groupNum,setGroupNum]=useState(arr[3]);
 	const [open,setOpen]=useState(false);
+	const [students,setStudents]=useState(null);
+	const [toRemove,setToRemove]=useState([]);
 	const close=props.data.closeAction;
 	const saveAction=props.data.saveAction;
 	const type=props.data.type;
+
+	useEffect(()=>{
+		if (students) return;
+		loadStudents(group)
+		.then((answer)=>{
+			setStudents(answer);
+			console.log(answer);
+		})
+		.catch((err)=>console.log(err));
+	});
 
 	function handleSave() {
 		if (edType==="") return;
@@ -235,6 +250,10 @@ function GroupDialog(props) {
 		const newGroup=edType+'-'+faculty+'-'+course+'-'+groupNum;
 		saveAction(newGroup);
 		close();
+	}
+	function handleRemove(num) {
+		if (toRemove.includes(num)) setToRemove(toRemove.filter((e_)=>e_!==num));
+		else setToRemove(toRemove.concat(num));
 	}
 
 	return(<div id="dialog-wrapper"
@@ -250,7 +269,10 @@ function GroupDialog(props) {
 		<input value={course} onChange={(e)=>setCourse(e.target.value)}></input>
 		<label>Номер группы</label>
 		<input value={groupNum} onChange={(e)=>setGroupNum(e.target.value)}></input>
-		<StudentsList data={{group:(!arr.includes("")?group:null)}}/>
+		<StudentsList data={{addStudentAction:(name)=>setStudents(students.concat(name.trim().split(','))),
+							 toRemove:toRemove,
+							 handleRemove:handleRemove,
+							 students:(!arr.includes("")?students:[])}}/>
 			<div>
 			<button onClick={()=>handleSave()}>Сохранить изменения</button>
 			<button onClick={()=>close()}>Закрыть</button>
@@ -260,33 +282,31 @@ function GroupDialog(props) {
 }
 
 function StudentsList(props) {
-	const [list,setList]=useState([]);
-	const group=props.data.group;
-	const [got,setGot]=useState((group)?false:true);
+	const [list,setList]=[props.data.students,props.data.addStudentAction];
+	const [toRemove,handleRemove]=[props.data.toRemove,props.data.handleRemove];
+	const [name,setName]=useState("");
 	const [toShow,setToShow]=useState(false);
-
-	useEffect(()=>{
-		if (got) return;
-		loadStudents(group)
-		.then((answer)=>{
-			setList(answer);
-			setGot(true);
-		})
-		.catch((err)=>console.log(err));
-	});
 
 	function AddStudent() {
 		const [name,setName]=useState("");
 		return (<Fragment>
 			<input value={name} onChange={(e)=>setName(e.target.value)} />
-			<button onClick={()=>setList(list.concat(name.split(",")))}>Добавить</button>
+			<button onClick={()=>setList(name)}>+</button>
 		</Fragment>);
 	}
 
 	return(<div id="students-list">
 		<h4 onClick={()=>setToShow(!toShow)}>Студенты:</h4>
 		{(toShow)?<div id="list-body">
-			{(got)?list.map((e,num)=><h5 key={num}>{e}</h5>):<h4>Loading</h4>}
+			{(list)?list.map((e,num)=>
+				<Fragment key={num}>
+					<h5 
+						style={{textDecoration:(toRemove.includes(num))?"line-through":null}} 
+						onClick={()=>handleRemove(num)}
+					>{e}</h5>
+				</Fragment>)
+			:
+			<h4>Loading...</h4>}
 			<AddStudent />
 		</div>:null}
 	</div>);
