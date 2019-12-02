@@ -1,0 +1,17 @@
+#shedule-dialog-wrapper{
+	width: 80%;
+	height: 100%;
+}
+#shedule-dialog-body{
+	display: grid;
+	margin-top: 10px;
+	margin-left: 2%;
+	margin-bottom: 60px;
+	width: 30%;
+	height: 50%;
+}
+#plus-button{
+	margin-left: 7px;
+	width: 10px;
+	height: 30px;
+}

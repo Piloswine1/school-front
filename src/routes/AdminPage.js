@@ -9,7 +9,8 @@ function AdminPage(props) {
 	
 	return(<div id="AdminPage">
 		<Link to="/admin/group-editor">Редактор групп</Link>
-		<button>Редактор расписания</button>
+		<p/>
+		<Link to="/admin/shedule-editor">Редактор расписания</Link>
 		</div>);
 }
 

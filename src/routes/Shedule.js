@@ -13,6 +13,7 @@ function Shedule(){
 			if (available) return;
 			loadAllBody()
 			.then((e)=>{
+		console.log(1);
 				setData(e);
 				setAvailable(true);
 			})
@@ -135,7 +136,8 @@ function FacultyBlock(props) {
 	const [status,setStatus] = useState("close");
 
 	useEffect(()=>{
-		if (status==="close" || status==="nodata") return;
+		if (status==="close" || status==="nodata" || status==="open") return;
+		console.log(3);
 		loadGroups(course,faculty)
 		.then((answ)=>{
 			if (status==="pending"){
@@ -165,7 +167,7 @@ function FacultyBlock(props) {
 
 	return( <div id="faculty-block">
 					<h3 onClick={()=>handleClick()}>Факультет {faculty}</h3>
-					{(status==="open")?<h4>{groups.reduce((red,curr,index)=>(index===0)?red+curr:red+","+curr,"")}</h4>:<Loader data={status}/>}
+					{(status==="open")?<div>{groups.map((e,num)=><Fragment  key={num}><Link to={"/shedule/"+e}>{e}</Link> </Fragment>)}</div>:<Loader data={status}/>}
 			</div>);
 }
 

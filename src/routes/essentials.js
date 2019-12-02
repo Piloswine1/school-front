@@ -1,5 +1,29 @@
 import React from 'react';
 
+function loadShedule(group) {
+	return new Promise((resolve,reject)=>{
+		setTimeout(()=>{
+			resolve([
+				{date:'2-11-2019',body:["урок1-каб.333","урок2-каб.444","урок3-каб.555"]},
+				{date:'3-11-2019',body:["урок1-каб.33","урок2-каб.44","урок3-каб.55"]},
+				{date:'4-11-2019',body:["урок1-каб.3","урок2-каб.4","урок3-каб.5"]},]);
+		}, 400);
+	})
+}
+
+function loadStudents(group) {
+	return new Promise((resolve,reject)=>{
+		if (group==="") resolve([]);
+		setTimeout(()=>resolve(
+			["Перфильев Вадим Дмитриевич",
+			"Солунов Кирилл Валерьевич",
+			"Золотарев Александр Олегович",
+			"Лысов Глеб Викторович",
+			"Владимиров Александр Сергеевич"]
+		),500);
+	})
+}
+
 function loadAllBody() {
 	return new Promise((resolve,reject)=>{
 		setTimeout(()=>resolve({
@@ -49,4 +73,4 @@ function loadAllGroups() {
 	},1000));	
 }
 
-export {testGroup,Loader,concatUnique,loadGroups,loadAllGroups,loadAllBody,parseGroup};
+export {testGroup,loadShedule,loadStudents,Loader,concatUnique,loadGroups,loadAllGroups,loadAllBody,parseGroup};
