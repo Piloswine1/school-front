@@ -3,32 +3,26 @@ import {Link} from 'react-router-dom';
 import {Loader,concatUnique,loadGroups,loadAllBody} from './essentials';
 import './shedule.css';
 
-//Подумать над этим блоком, скорее всего поменять, убрать кнопку
-//________________________________________________________________
 function Shedule(){
-	const [data,setData]=useState({});
-	const [available,setAvailable]=useState(false);
+	const [data,setData]=useState(null);
 
 	useEffect(()=>{
-			if (available) return;
+			if (data) return;
 			loadAllBody()
 			.then((e)=>{
-		console.log(1);
 				setData(e);
-				setAvailable(true);
 			})
 			.catch((err)=>console.log(err));
-		},[available]);
+	});
 
 	return(<div>
-			{available?
+			{(data)?
 				<ShedulePage data={data} />
 				:
 				<h1>Loading...</h1>
 			}
 		</div>);
 }
-//_________________________________________________________________
 
 function ShedulePage(props){
 	const data = props.data;
@@ -132,37 +126,35 @@ function CourseBlock(props){
 
 function FacultyBlock(props) {
 	const [course,faculty] = [props.data.course,props.data.faculty];
-	const [groups,setGroups] = useState([]);
+	const [groups,setGroups] = useState(null);
+	const [answer,setAnswer] = useState(null);
 	const [status,setStatus] = useState("close");
 
 	useEffect(()=>{
-		if (status==="close" || status==="nodata" || status==="open") return;
-		console.log(3);
-		loadGroups(course,faculty)
-		.then((answ)=>{
-			if (status==="pending"){
-				if (answ.length===0) setStatus("nodata"); 
-				else {
-				setGroups(concatUnique(groups,answ));
-				setStatus("open");
-				}
-				return;
-			}
-			if (status==="open"){
-				if (answ===groups) return; 
-				else {
-					setGroups(concatUnique(groups,answ));
-					return;
-				}
-			}
-			console.log(new Error("unknow status",status));
-		})
-		.catch((err)=>console.log(err));
-	},[status]);
+		if (status!=='pending') return;
+		if (answer===null) return;
+		if (answer===groups) return;
+		console.log(groups,status);
+		if (!Array.isArray(answer)) console.log(new Error("wrong answer"));
+		if (answer.length===0) {
+			setStatus("nodata");
+			return;
+		}
+		setGroups(concatUnique(answer,groups||[]));
+		setStatus("open");
+	},[answer,groups,status]);
 
 	function handleClick() { 
-		if (groups.length===0 && status==="close") setStatus("pending"); else
-		setStatus((status==="close")?"open":"close");
+		if (groups) setStatus((status==="close")?"open":"close");
+		if (status==="nodata") setStatus("close");
+		if (groups===null && status==="close") {
+			setStatus("pending");
+			setAnswer(null);
+			loadGroups(course,faculty)
+			.then((answer)=>setAnswer(answer))
+			.catch((err)=>console.log(err));
+		} 
+		console.log(groups,status);
 	}
 
 	return( <div id="faculty-block">

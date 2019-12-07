@@ -1,45 +1,49 @@
-import ReactDOM from 'react-dom';
 import React,{useState,Fragment,useEffect} from 'react';
-import {Link} from 'react-router-dom';
 import './groupeditor.css';
-import {loadGroups,loadStudents,parseGroup,loadAllGroups,loadAllBody,testGroup} from './essentials'
+import {loadStudents,loadAllGroups,saveGroup,updateGroup,loadAllBody,parseGroup} from './essentials'
 
 function GroupEditor(props) {
-	const [groups,setGroups]=useState([]);
-	const [courses,setCourses]=useState([]);
-	const [facultys,setFacultys]=useState([]);
-	const [available,setAvailable]=useState(false);
+	const [groups,setGroups]=useState(null);
+	const [courses,setCourses]=useState(null);
+	const [facultys,setFacultys]=useState(null);
 
 	useEffect(()=>{
-		if (available) return;
+		if (groups) return;
 		loadAllBody()
 		.then((answer)=>{
-			setCourses(answer.courses);
-			setFacultys(answer.facultys);
 			loadAllGroups()
 			.then((answer_)=>{
 				setGroups(answer_);
-				setAvailable(true);
+				setCourses(answer.courses);
+				setFacultys(answer.facultys);
 			})
 			.catch((err)=>console.log(err));
 		})
 		.catch((err)=>console.log(err));
-	},[available]);
+	});
 
 
 
 	return(<div id="group-editor-page">
-		{available? <Editor 
+		{(groups && courses && facultys)?  <Editor 
 						data={{meta: 
 								{
 									courses:courses,
-									facultys:facultys
+									facultys:facultys,
+									groups:(groups)=>{
+										var arr=[];
+										groups.forEach((e)=>{
+											const group=parseGroup(e);
+											const index=arr.findIndex((e)=>(e.faculty===group.faculty && e.course===group.course));
+											if (index===-1) arr.push({faculty:group.faculty,course:group.course,groups:[e]});
+											else arr[index].groups.push(e);
+										});
+										return arr;
+									}
 								},
 							   	groups:groups,
-							   	reloadAction:()=>setAvailable(false),
-							   	setters:[setGroups,
-							   			 setCourses,
-							   			 setFacultys]
+							   	reloadAction:()=>setGroups(null),
+							   	setGroups:setGroups
 							 }}
 					/>
 					:
@@ -51,52 +55,16 @@ function Editor(props) {
 	const reloadAction=props.data.reloadAction;
 	const groups=props.data.groups;
 	const data=props.data.meta;
-	const [setGroups,setCourses,setFacultys]=props.data.setters;
+	const setGroups=props.data.setGroups;
 	const [toShow,setToShow]=useState(props.data.meta);
-	const [open,setOpen]=useState(false);
 	const [dialogGroup,setDialogGroup]=useState(null);
 
-	function addGroup(e) {
-		if (groups.includes(e)) return;
-		setGroups(groups.concat(e));
+	function addGroup(group) {
+		if (groups.includes(group)) return;
+		setGroups(groups.concat(group));
 	}
 	function changeGroup(oldGroup,newGroup) {
-		if (groups.includes(newGroup)) return;
-		setGroups(
-				groups
-				.filter((e)=>e!==oldGroup)
-				.concat(newGroup)
-				);
-	}
-	function addFaculty(e) {
-		if (data.facultys.includes(e)) return;
-		setFacultys(data.facultys.concat(e));
-		setToShow({
-			courses:toShow.courses,
-			facultys:toShow.facultys.concat(e)
-		});
-	}
-	function deleteFaculty(faculty) {
-			setFacultys(data.facultys.filter((e)=>e!==faculty));
-			setToShow({
-				courses:toShow.courses,
-				facultys:toShow.facultys.filter((e)=>e!==faculty)
-			});
-	}
-	function addCourse(e) {
-		if (data.courses.includes(e)) return;
-		setCourses(data.courses.concat(e));
-		setToShow({
-			courses:toShow.courses.concat(e),
-			facultys:toShow.facultys
-		});
-	}
-	function deleteCourse(course) {
-		setCourses(data.courses.filter((e)=>e!==course));
-		setToShow({
-			courses:toShow.courses.filter((e)=>e!==course),
-			facultys:toShow.facultys
-		});
+		setGroups(groups.filter((e)=>e!==oldGroup).concat(newGroup));
 	}
 	function openDialogWithFields(course,faculty) {
 		document.body.style.overflow="hidden";
@@ -107,29 +75,24 @@ function Editor(props) {
 		{(dialogGroup)?<GroupDialog 
 							data={{ type:"global",
 									group:dialogGroup,
-									saveAction:addGroup,
+									saveAction:(e)=>{
+										addGroup(e.group);
+										saveGroup(e);
+									},
 									closeAction:()=>{
 										document.body.style.overflow=null;
 										setDialogGroup(null);
 									}}}
 						/>:null}
 		<button onClick={()=>reloadAction()}>Перезагрузить</button>
-		<ToolBar data={{meta:data,setToShow:setToShow}}/>
-		<DataField data={{toShow:toShow,groups:groups,actions:{
-																addGroup:addGroup,
-																changeGroup:changeGroup,
-																addFaculty:addFaculty,
-																deleteFaculty:deleteFaculty,
-																addCourse:addCourse,
-																deleteCourse:deleteCourse,
-																openDialogWithFields:openDialogWithFields
-															  }}}/>
+		<ToolBar data={{meta:data,toShow:toShow,setToShow:setToShow}}/>
+		<DataField data={{toShow:toShow,groups:groups,changeGroup:changeGroup,openDialog:openDialogWithFields}}/>
 		</Fragment>);
 }
 
 function ToolBar(props) {
 	const data=props.data.meta;
-	const setToShow=props.data.setToShow;
+	const [toShow,setToShow]=[props.data.toShow,props.data.setToShow];
 	const [courses, setCourses] = useState("");
 	const [facultys, setFacultys] = useState("");
 
@@ -140,7 +103,7 @@ function ToolBar(props) {
 			newCourses=data.courses;
 		}else{
 			newCourses=courses.trim().split(",");
-			if (newCourses.some((e)=>!/\d+/g.exec(e))) return false;	
+			if (newCourses.some((e)=>!/\d+/g.test(e))) return false;	
 			if (newCourses.some((e)=>!data.courses.includes(e))) return false;		
 		}
 		if (facultys===""){
@@ -148,12 +111,13 @@ function ToolBar(props) {
 
 		}else{
 			newFacultys=facultys.trim().split(",");
-			if (newFacultys.some((e)=>!/^[A-Z]\d+/g.exec(e))) return false;
+			if (newFacultys.some((e)=>!/^[A-Z]\d+/g.test(e))) return false;
 			if (newFacultys.some((e)=>!data.facultys.includes(e))) return false;
 		}
 		setToShow({
 			courses:newCourses,
 			facultys:newFacultys,
+			groups:toShow.groups
 		});
 	}
 	function handleAllLoad() {
@@ -175,7 +139,23 @@ function ToolBar(props) {
 function DataField(props) {
 	const data=props.data.toShow;
 	const groups=props.data.groups;
-	const action=props.data.actions;
+	const groupsToShow=data.groups(groups);
+	const changeGroup=props.data.changeGroup;
+	const openDialog=props.data.openDialog;
+
+	function showElements(course,faculty) {
+		const index = groupsToShow.findIndex((e)=>(e.faculty===faculty&&e.course===course)); 
+		if (index===-1) return null;
+		const arr = groupsToShow[index].groups.map((group,num)=>
+			<Element 
+				key={'e'+num}
+				data={{
+					group:group,
+					changeGroup:changeGroup
+				}}
+			/>);
+		return arr;
+	}
 
 	return(<div id="data-field">
 			{data.courses.map((course,num)=><div key={''+num}>
@@ -183,19 +163,8 @@ function DataField(props) {
 				{data.facultys.map((faculty,num_)=><div key={''+num+num_}>
 					<h3>Факультет {faculty}</h3>
 					<h4>Группы:</h4>
-					{groups.map((group,num__)=>(testGroup(group,course,faculty))?
-						<Element 
-							key={''+num+num_+num__}
-							data={{
-								group:group,
-								actions:{
-									changeGroup:action.changeGroup
-								}
-							}}
-						/>
-						:
-						null)}
-					<button onClick={(e)=>action.openDialogWithFields(course,faculty)}>Добавить группу</button>
+					{showElements(course,faculty)}
+					<button onClick={(e)=>openDialog(course,faculty)}>Добавить группу</button>
 					</div>)}	
 			</div>)}
 		</div>);
@@ -203,7 +172,7 @@ function DataField(props) {
 
 function Element(props) {
 	const group=props.data.group;
-	const changeGroup=props.data.actions.changeGroup;
+	const changeGroup=props.data.changeGroup;
 	const [open,setOpen]=useState(false);
 
 	return(<Fragment>
@@ -211,7 +180,10 @@ function Element(props) {
 		{(open)?<GroupDialog 
 					data={{type:"local",
 							group:group,
-							saveAction:(e)=>changeGroup(group,e),
+							saveAction:(e)=>{
+								changeGroup(group,e.group);
+								updateGroup(group,e);
+							},
 							closeAction:()=>setOpen(false)
 						  }}
 				/>:null}
@@ -225,7 +197,6 @@ function GroupDialog(props) {
 	const [faculty,setFaculty]=useState(arr[1]);
 	const [course,setCourse]=useState(arr[2]);
 	const [groupNum,setGroupNum]=useState(arr[3]);
-	const [open,setOpen]=useState(false);
 	const [students,setStudents]=useState(null);
 	const [toRemove,setToRemove]=useState([]);
 	const close=props.data.closeAction;
@@ -237,17 +208,17 @@ function GroupDialog(props) {
 		loadStudents(group)
 		.then((answer)=>{
 			setStudents(answer);
-			console.log(answer);
 		})
 		.catch((err)=>console.log(err));
-	});
+	},[students,group]);
 
 	function handleSave() {
-		if (edType==="") return;
-		if (faculty==="") return;
-		if (course==="") return;
-		if (groupNum==="") return;
-		const newGroup=edType+'-'+faculty+'-'+course+'-'+groupNum;
+		if (!/^[BMS|Bk]$/g.test(edType)) return;
+		if (!/^[A-Z]\d+$/g.test(faculty)) return;
+		if (!/^\d+$/g.test(course)) return;
+		if (!/^\d+$/g.test(groupNum)) return;
+		const newGroupName=edType+'-'+faculty+'-'+course+'-'+groupNum;
+		const newGroup={group:newGroupName,students:students.filter((e,num)=>!toRemove.includes(num))};
 		saveAction(newGroup);
 		close();
 	}
@@ -256,26 +227,40 @@ function GroupDialog(props) {
 		else setToRemove(toRemove.concat(num));
 	}
 
-	return(<div id="dialog-wrapper"
+	return(<div id="group-dialog-wrapper"
 				className={type} 
 				style={(type==="global")?{top:window.scrollY}:null}
 			>
-		<div id="dialog-body"  className={type}>
+		<div id="group-dialog-body"  className={type}>
 		<label>Тип обучения</label>
-		<input value={edType} onChange={(e)=>setEdType(e.target.value)}></input>
+		<input 	value={edType} 
+			   	className={(/^[BMS|Bk]$/g.test(edType))?"ok":(edType)?"error":"none"}
+			   	onChange={(e)=>setEdType(e.target.value)}
+		></input>
 		<label>Факультет</label>
-		<input value={faculty} onChange={(e)=>setFaculty(e.target.value)}></input>
+		<input 	value={faculty} 
+				className={(/^[A-Z]\d+$/g.test(faculty))?"ok":(faculty)?"error":"none"} 
+				onChange={(e)=>setFaculty(e.target.value)}
+		></input>
 		<label>Курс</label>
-		<input value={course} onChange={(e)=>setCourse(e.target.value)}></input>
+		<input 	value={course} 
+				className={(/^\d+$/g.test(course))?"ok":(course)?"error":"none"} 
+				onChange={(e)=>setCourse(e.target.value)}
+		></input>
 		<label>Номер группы</label>
-		<input value={groupNum} onChange={(e)=>setGroupNum(e.target.value)}></input>
-		<StudentsList data={{addStudentAction:(name)=>setStudents(students.concat(name.trim().split(','))),
+		<input 	value={groupNum} 
+				className={(/^\d+$/g.test(groupNum))?"ok":(groupNum)?"error":"none"} 
+				onChange={(e)=>setGroupNum(e.target.value)}></input>
+		<StudentsList data={{addStudentAction:(name)=>{
+			if (name==="") return;
+			setStudents(students.concat(name.trim().split(',')));
+		},
 							 toRemove:toRemove,
 							 handleRemove:handleRemove,
-							 students:(!arr.includes("")?students:[])}}/>
+							 students:(students)}}/>
 			<div>
-			<button onClick={()=>handleSave()}>Сохранить изменения</button>
-			<button onClick={()=>close()}>Закрыть</button>
+			<button className="button" onClick={()=>handleSave()}>Сохранить изменения</button>
+			<button className="button" onClick={()=>close()}>Закрыть</button>
 			</div>
 		</div>
 		</div>);
@@ -284,19 +269,18 @@ function GroupDialog(props) {
 function StudentsList(props) {
 	const [list,setList]=[props.data.students,props.data.addStudentAction];
 	const [toRemove,handleRemove]=[props.data.toRemove,props.data.handleRemove];
-	const [name,setName]=useState("");
 	const [toShow,setToShow]=useState(false);
 
 	function AddStudent() {
 		const [name,setName]=useState("");
 		return (<Fragment>
 			<input value={name} onChange={(e)=>setName(e.target.value)} />
-			<button onClick={()=>setList(name)}>+</button>
+			<button id="group-plus-button" onClick={()=>setList(name)}>+</button>
 		</Fragment>);
 	}
 
 	return(<div id="students-list">
-		<h4 onClick={()=>setToShow(!toShow)}>Студенты:</h4>
+		<h4 onClick={()=>setToShow(!toShow)} id="button" className={(toShow)?"true":"false"} >Студенты {(toShow)?'v':'>'}</h4>
 		{(toShow)?<div id="list-body">
 			{(list)?list.map((e,num)=>
 				<Fragment key={num}>

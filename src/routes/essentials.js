@@ -1,35 +1,43 @@
 import React from 'react';
+import axios from 'axios';
 
+function saveShedule(group,action) {
+	return new Promise((resolve,reject)=>{
+		axios.post('http://localhost:3001/groupSheduleSave',{group:group,date:action.date,body:action.body})
+			 .then((answer)=>resolve(answer.status))
+			 .catch((err)=>reject(err));
+	})
+}
+function updateShedule(group,oldDay,newDay) {
+	return new Promise((resolve,reject)=>{
+		axios.post('http://localhost:3001/groupSheduleUpdate',{group:group,oldDay:oldDay,newDay:newDay})
+			 .then((answer)=>resolve(answer))
+			 .catch((err)=>reject(err));
+	});
+}
 function loadShedule(group) {
 	return new Promise((resolve,reject)=>{
-		setTimeout(()=>{
-			resolve([
-				{date:'2019-12-3',body:["урок1-каб.333-1:00","урок2-каб.444-2:00","урок3-каб.555-3:00"]},
-				{date:'2019-12-3',body:["урок1-каб.33-1:00","урок2-каб.44-2:00","урок3-каб.55-3:00"]},
-				{date:'2019-12-1',body:["урок1-каб.3-1:00","урок2-каб.4-2:00","урок3-каб.5-3:00"]},]);
-		}, 400);
+		axios.post('http://localhost:3001/groupShedule',{group:group})
+			 .then((answer)=>resolve(answer.data))
+			 .catch((err)=>reject(err));
 	})
 }
 
 function loadStudents(group) {
 	return new Promise((resolve,reject)=>{
 		if (group==="") resolve([]);
-		setTimeout(()=>resolve(
-			["Перфильев Вадим Дмитриевич",
-			"Солунов Кирилл Валерьевич",
-			"Золотарев Александр Олегович",
-			"Лысов Глеб Викторович",
-			"Владимиров Александр Сергеевич"]
-		),500);
+		axios.post('http://localhost:3001/groupStudents',{group:group})
+			 .then((answer)=>resolve(answer.data))
+			 .catch((err)=>reject(err));
 	})
 }
 
 function loadAllBody() {
 	return new Promise((resolve,reject)=>{
-		setTimeout(()=>resolve({
-						courses:["1","2","3","4","5","6"],
-						facultys:["H1","H2","H3","H4","H5","H6","H7"]
-					}), 600);
+		resolve({
+					courses:["1","2","3","4","5","6"],
+					facultys:["H1","H2","H3","H4","H5","H6","H7"]
+				});
 	});
 }
 
@@ -39,7 +47,13 @@ function testGroup(e,course,faculty) {
 }
 
 function parseGroup(group) {
-	return group.trim().split("-");
+	const arr=group.trim().split("-");
+	return ({
+		type:arr[0],
+		faculty:arr[1],
+		course:arr[2],
+		number:arr[3]
+	})
 }
 
 function Loader(props) {
@@ -54,23 +68,35 @@ function concatUnique(arr1,arr2) {
 }
 
 function loadGroups(course,faculty){
-	return new Promise((resolve,reject)=>setTimeout(function() {
-		if (course==="1" && faculty==="H1") resolve(["B-H1-1-11","M-H1-1-11","B-H1-1-23","Bk-H1-1-33"]);
-		if (course==="1" && faculty==="H2") resolve(["B-H2-1-11","M-H2-1-11","B-H2-1-23","Bk-H2-1-33"]);
-		if (course==="2" && faculty==="H2") resolve(["B-H2-2-11","M-H2-2-11","B-H2-2-23","Bk-H2-2-33"]);
-		if (course==="3" && faculty==="H3") resolve(["B-H3-3-33","M-H3-3-33","B-H3-3-23","Bk-H3-3-33"]);
-		if (course==="4" && faculty==="H4") resolve(["B-H4-4-44","M-H4-4-44","B-H4-4-23","Bk-H4-4-33"]);
-		resolve([]);
-	},1000));
+	return new Promise((resolve,reject)=>{
+		axios.post('http://localhost:3001/groupsFind',
+					{course:course,faculty:faculty})
+			 .then((answer)=>resolve(answer.data))
+			 .catch((err)=>reject(err));
+	});
 }
 
 function loadAllGroups() {
-	return new Promise((resolve,reject)=>setTimeout(function(){
-		resolve([ "B-H1-1-11","M-H1-1-11","B-H1-1-23","Bk-H1-1-33",
-				  "B-H2-1-11","M-H2-1-11","B-H2-1-23","Bk-H2-1-33",
-				  "B-H3-3-33","M-H3-3-33","B-H3-3-23","Bk-H3-3-33",
-				  "B-H4-4-44","M-H4-4-44","B-H4-4-23","Bk-H4-4-33"]);
-	},1000));	
+	return new Promise((resolve,reject)=>{
+		axios.get('http://localhost:3001/groups')
+			 .then((answer)=>resolve(answer.data))
+			 .catch((err)=>reject(err));
+	});
 }
 
-export {testGroup,loadShedule,loadStudents,Loader,concatUnique,loadGroups,loadAllGroups,loadAllBody,parseGroup};
+function saveGroup(group) {
+	return new Promise((resolve,reject)=>{
+		axios.post('http://localhost:3001/groupSave',group)
+			 .then((answer)=>resolve(answer))
+			 .catch((err)=>reject(err));
+	})
+}
+function updateGroup(oldGroup,newGroup) {
+	return new Promise((resolve,reject)=>{
+		axios.post('http://localhost:3001/groupUpdate',{oldGroup:oldGroup,newGroup:newGroup})
+			 .then((answer)=>resolve(answer))
+			 .catch((err)=>reject(err));
+	})
+}
+
+export {testGroup,saveGroup,updateGroup,saveShedule,updateShedule,loadShedule,loadStudents,Loader,concatUnique,loadGroups,loadAllGroups,loadAllBody,parseGroup};
