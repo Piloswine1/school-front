@@ -1,10 +1,10 @@
 import React,{useState,useEffect,Fragment} from 'react';
-import {loadShedule,loadAllGroups} from './essentials';
+import {loadShedule,loadAllGroups,saveShedule} from './essentials';
 import './sheduleeditor.css';
 
 function SheduleEditor(props) {
-	const [groupShedule,setGroupShedule]=useState([]);
-	const [loaded,setLoaded]=useState("none");
+	const [groupShedule,setGroupShedule]=useState(null);
+	const [group,setGroup]=useState("");
 
 	function addDay(e) {
 		setGroupShedule(groupShedule.concat(e));
@@ -26,56 +26,71 @@ function SheduleEditor(props) {
 	}
 
 	return(<div id="shedule-editor-page">
-		<SearchBar data={{loadShedule:setGroupShedule,setLoad:setLoaded}}/>
-		<DataField data={{shedule:groupShedule,status:loaded,actions:{
-														addDay:addDay,
-														addLesson:addLesson,
-														changeDay:changeDay,
-														changeLesson:changeLesson
-														}}}/>
+		<SearchBar data={{loadShedule:setGroupShedule,group:group,setGroup:setGroup}}/>
+		{(groupShedule)?<DataField data={{shedule:groupShedule,group:group,actions:{
+															addDay:addDay,
+															addLesson:addLesson,
+															changeDay:changeDay,
+															changeLesson:changeLesson
+															}}}/>:null}
 		</div>);
 }
 
 function SearchBar(props) {
-	const [group,setGroup]=useState("");
+	const [groups,setGroups]=useState(null);
+	const [group,setGroup]=[props.data.group,props.data.setGroup];
 	const setShedule=props.data.loadShedule;
-	const setLoad=props.data.setLoad;
+
+	useEffect(()=>{
+		if (groups) return;
+		loadAllGroups().then((answer)=>setGroups(answer));
+	});
 
 	function handleLoadShedule() {
-		loadShedule()
+		if (group==="") {
+			setShedule(null);
+			return;
+		}
+		loadShedule(group)
 		.then((answer)=>{
 			setShedule(answer);
-			setLoad("ok");
 		})
-		.catch((err)=>console.log(err));
+		.catch((err)=>{
+			console.log(err);
+			setShedule(null);
+		});
 	}
 
 	return(<div id="search-bar">
-		<label>Группа:</label>
-		<input value={group} onChange={(e)=>setGroup(e.target.value)}></input>
-		<button onClick={()=>handleLoadShedule()}>Показать расписание</button>
+		{(groups)?<Fragment>
+				<select value={group} onChange={(e)=>setGroup(e.target.value)} id="group-select" >
+					<option value="">Выберите группу</option>
+					{groups.map((e,key)=><option key={key} value={e}>{e}</option>)}		 		
+				</select>
+				<button onClick={()=>handleLoadShedule()}>Показать расписание</button>
+			</Fragment>:<h3>Loading...</h3>}
 		</div>);
 }
 
 function DataField(props) {
-	const [shedule,setShedule]=useState(props.data.shedule);
-	const status=props.data.status;
+	const shedule=props.data.shedule;
 	const actions=props.data.actions;
+	const group=props.data.group;
 
-	useEffect(()=>setShedule(props.data.shedule),[props.data.shedule]);
-
+	if (shedule===null) return(<h3>Выберите группу</h3>);
 	return(<div id="data-field">
 			{shedule.map((day,num)=><div key={num}>
-				<DayDialog data={{type:"change",day:day,action:(e)=>actions.changeDay(day,e)}}/>
+				<DayDialog data={{type:"change",group:group,day:day,action:(e)=>actions.changeDay(day,e)}}/>
 				</div>)}
-			{(status==="none")?null:<DayDialog data={{type:"add",action:actions.addDay}}/>}
+			<DayDialog data={{type:"add",group:group,action:actions.addDay}}/>
 			</div>);
 }
 
 function DayDialog(props) {
-	let toDate,toLessons;
 	const type=props.data.type;
 	const action=props.data.action;
+	const group=props.data.group;
+	let toDate,toLessons;
 	if (type==="change") {
 		const day=props.data.day;
 		toDate=day.date;
@@ -100,6 +115,8 @@ function DayDialog(props) {
 				date:date,
 				body:lessons.filter((e,num)=>!toRemove.includes(num))
 			});
+			saveShedule(group,action)
+			.then((answer)=>console.log(answer));
 			close();
 		}
 		function handlePushLesson() {

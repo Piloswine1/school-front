@@ -1,8 +1,6 @@
-import ReactDOM from 'react-dom';
 import React,{useState,Fragment,useEffect} from 'react';
-import {Link} from 'react-router-dom';
 import './groupeditor.css';
-import {loadGroups,loadStudents,parseGroup,loadAllGroups,loadAllBody,testGroup} from './essentials'
+import {loadStudents,loadAllGroups,loadAllBody,testGroup} from './essentials'
 
 function GroupEditor(props) {
 	const [groups,setGroups]=useState([]);
@@ -53,7 +51,6 @@ function Editor(props) {
 	const data=props.data.meta;
 	const [setGroups,setCourses,setFacultys]=props.data.setters;
 	const [toShow,setToShow]=useState(props.data.meta);
-	const [open,setOpen]=useState(false);
 	const [dialogGroup,setDialogGroup]=useState(null);
 
 	function addGroup(e) {
@@ -225,7 +222,6 @@ function GroupDialog(props) {
 	const [faculty,setFaculty]=useState(arr[1]);
 	const [course,setCourse]=useState(arr[2]);
 	const [groupNum,setGroupNum]=useState(arr[3]);
-	const [open,setOpen]=useState(false);
 	const [students,setStudents]=useState(null);
 	const [toRemove,setToRemove]=useState([]);
 	const close=props.data.closeAction;
@@ -284,7 +280,6 @@ function GroupDialog(props) {
 function StudentsList(props) {
 	const [list,setList]=[props.data.students,props.data.addStudentAction];
 	const [toRemove,handleRemove]=[props.data.toRemove,props.data.handleRemove];
-	const [name,setName]=useState("");
 	const [toShow,setToShow]=useState(false);
 
 	function AddStudent() {

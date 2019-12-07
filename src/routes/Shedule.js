@@ -6,22 +6,19 @@ import './shedule.css';
 //Подумать над этим блоком, скорее всего поменять, убрать кнопку
 //________________________________________________________________
 function Shedule(){
-	const [data,setData]=useState({});
-	const [available,setAvailable]=useState(false);
+	const [data,setData]=useState(null);
 
 	useEffect(()=>{
-			if (available) return;
+			if (data) return;
 			loadAllBody()
 			.then((e)=>{
-		console.log(1);
 				setData(e);
-				setAvailable(true);
 			})
 			.catch((err)=>console.log(err));
-		},[available]);
+	});
 
 	return(<div>
-			{available?
+			{(data)?
 				<ShedulePage data={data} />
 				:
 				<h1>Loading...</h1>
