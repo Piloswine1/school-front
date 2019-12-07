@@ -1,5 +1,5 @@
 import React,{useState,useEffect,Fragment} from 'react';
-import {loadShedule,loadAllGroups,saveShedule} from './essentials';
+import {loadShedule,loadAllGroups,saveShedule,updateShedule} from './essentials';
 import './sheduleeditor.css';
 
 function SheduleEditor(props) {
@@ -8,30 +8,18 @@ function SheduleEditor(props) {
 
 	function addDay(e) {
 		setGroupShedule(groupShedule.concat(e));
-	}
-	function addLesson(day,lesson) {
-		setGroupShedule(groupShedule.filter((e)=>e!==day).concat({
-			date:day.date,
-			body:day.body.concat(lesson)
-		}));
-	}
-	function changeLesson(day,oldLesson,newLesson) {
-		setGroupShedule(groupShedule.filter((e)=>e!==day).concat({
-			date:day.date,
-			body:day.body.filter((lesson)=>lesson!==oldLesson).concat(newLesson)
-		}));
+		saveShedule(group,e);
 	}
 	function changeDay(oldDay,newDay) {
 		setGroupShedule(groupShedule.filter((e)=>e!==oldDay).concat(newDay));
+		updateShedule(group,oldDay,newDay);
 	}
 
 	return(<div id="shedule-editor-page">
 		<SearchBar data={{loadShedule:setGroupShedule,group:group,setGroup:setGroup}}/>
 		{(groupShedule)?<DataField data={{shedule:groupShedule,group:group,actions:{
 															addDay:addDay,
-															addLesson:addLesson,
-															changeDay:changeDay,
-															changeLesson:changeLesson
+															changeDay:changeDay
 															}}}/>:null}
 		</div>);
 }
@@ -43,6 +31,7 @@ function SearchBar(props) {
 
 	useEffect(()=>{
 		if (groups) return;
+		console.log(groups);
 		loadAllGroups().then((answer)=>setGroups(answer));
 	});
 
@@ -89,7 +78,6 @@ function DataField(props) {
 function DayDialog(props) {
 	const type=props.data.type;
 	const action=props.data.action;
-	const group=props.data.group;
 	let toDate,toLessons;
 	if (type==="change") {
 		const day=props.data.day;
@@ -111,12 +99,11 @@ function DayDialog(props) {
 		const [toRemove,setToRemove]=useState([]);
 
 		function handleAction(){
+			if (isNaN(Date.parse(date))) return;
 			action({
 				date:date,
 				body:lessons.filter((e,num)=>!toRemove.includes(num))
 			});
-			saveShedule(group,action)
-			.then((answer)=>console.log(answer));
 			close();
 		}
 		function handlePushLesson() {
@@ -134,9 +121,10 @@ function DayDialog(props) {
 			setOpen(false);
 		}
 
-		return(	<div id="day-dialog-body">
+		return(	<div id="day-dialog-wrapper">
+				<div id="day-dialog-body">
 					<label>Дата</label>
-					<input value={date} onChange={(e)=>setDate(e.target.value)}></input>
+					<input value={date} className={(!isNaN(Date.parse(date)))?"ok":(date)?"error":"none"} onChange={(e)=>setDate(e.target.value)}></input>
 					<label>Занятия</label>
 					{lessons.map((e,num)=>
 						<h3 
@@ -144,12 +132,15 @@ function DayDialog(props) {
 							onClick={()=>handleRemove(num)}
 							style={{textDecoration:(toRemove.includes(num))?"line-through":null}}
 						>{e}</h3>)}
-					<input value={lesson} onChange={(e)=>setLesson(e.target.value)}></input>
-					<button onClick={()=>handlePushLesson()}>+</button>
 					<div>
-						<button onClick={()=>handleAction()}>Сохранить</button>
-						<button onClick={()=>close()}>Закрыть</button>
+						<input value={lesson} onChange={(e)=>setLesson(e.target.value)}></input>
+						<button id="shedule-plus-button" onClick={()=>handlePushLesson()}>+</button>
 					</div>
+					<div>
+						<button className="button" onClick={()=>handleAction()}>Сохранить</button>
+						<button className="button" onClick={()=>close()}>Закрыть</button>
+					</div>
+				</div>
 				</div>);
 	}
 

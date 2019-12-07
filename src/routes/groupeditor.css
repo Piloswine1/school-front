@@ -2,13 +2,24 @@
 	overflow: hidden;
 	margin-bottom: 60px;
 }
-#dialog-wrapper.global{
+#group-dialog-wrapper.global{
 	position: absolute;
 	height: 100%;
 	width: 100%;
 	background-color: rgb(0,0,0,0.7);
 }
-#dialog-body.global{
+#group-dialog-wrapper input{
+	border-radius: 3px;
+	padding: 1px 3px 1px 3px;
+	height: 32px;
+}
+#group-dialog-wrapper input.ok{
+	border-color: green;
+}
+#group-dialog-wrapper input.error{
+	border-color: red;
+}
+#group-dialog-body.global{
 	overflow-y: auto;
 	background-color: white;
 	padding: 7% 7% 7% 7%;
@@ -19,19 +30,33 @@
 	width: 50%;
 	height: 50%;
 }
-#dialog-body.local{
+#group-dialog-body.local{
 	display: grid;
 	margin-left: 10%;
 	margin-bottom: 3%;
 	width: 50%;
 	height: 60%;
 }
-#dialog-body button{
-	margin-top: 3%;
+#group-dialog-body .button{
+	margin-top: 5px;
+	margin-left: 5%;
+	width: 40%;
 	height: 100%;
-	width: 50%;
 }
 #tool-bar button{
 	margin-top: 10px;
 	margin-bottom: 10px;
+}
+#group-plus-button{
+	margin: 5px 5px 5px 5px;
+}
+#button{
+	margin-top: 3px;
+	width: 20%;
+}
+#button.true{
+	border: 3px inset black;
+}
+#button.false{
+	border: 3px outset grey;
 }

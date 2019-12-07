@@ -8,6 +8,13 @@ function saveShedule(group,action) {
 			 .catch((err)=>reject(err));
 	})
 }
+function updateShedule(group,oldDay,newDay) {
+	return new Promise((resolve,reject)=>{
+		axios.post('http://localhost:3001/groupSheduleUpdate',{group:group,oldDay:oldDay,newDay:newDay})
+			 .then((answer)=>resolve(answer))
+			 .catch((err)=>reject(err));
+	});
+}
 function loadShedule(group) {
 	return new Promise((resolve,reject)=>{
 		axios.post('http://localhost:3001/groupShedule',{group:group})
@@ -40,7 +47,13 @@ function testGroup(e,course,faculty) {
 }
 
 function parseGroup(group) {
-	return group.trim().split("-");
+	const arr=group.trim().split("-");
+	return ({
+		type:arr[0],
+		faculty:arr[1],
+		course:arr[2],
+		number:arr[3]
+	})
 }
 
 function Loader(props) {
@@ -71,4 +84,19 @@ function loadAllGroups() {
 	});
 }
 
-export {testGroup,saveShedule,loadShedule,loadStudents,Loader,concatUnique,loadGroups,loadAllGroups,loadAllBody,parseGroup};
+function saveGroup(group) {
+	return new Promise((resolve,reject)=>{
+		axios.post('http://localhost:3001/groupSave',group)
+			 .then((answer)=>resolve(answer))
+			 .catch((err)=>reject(err));
+	})
+}
+function updateGroup(oldGroup,newGroup) {
+	return new Promise((resolve,reject)=>{
+		axios.post('http://localhost:3001/groupUpdate',{oldGroup:oldGroup,newGroup:newGroup})
+			 .then((answer)=>resolve(answer))
+			 .catch((err)=>reject(err));
+	})
+}
+
+export {testGroup,saveGroup,updateGroup,saveShedule,updateShedule,loadShedule,loadStudents,Loader,concatUnique,loadGroups,loadAllGroups,loadAllBody,parseGroup};
