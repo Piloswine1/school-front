@@ -36,10 +36,8 @@ function SearchBar(props) {
 	});
 
 	function handleLoadShedule() {
-		if (group==="") {
-			setShedule(null);
-			return;
-		}
+		setShedule(null);
+		if (group==="") return;
 		loadShedule(group)
 		.then((answer)=>{
 			setShedule(answer);
@@ -56,7 +54,7 @@ function SearchBar(props) {
 					<option value="">Выберите группу</option>
 					{groups.map((e,key)=><option key={key} value={e}>{e}</option>)}		 		
 				</select>
-				<button onClick={()=>handleLoadShedule()}>Показать расписание</button>
+				<button style={{marginLeft:"20px"}} onClick={()=>handleLoadShedule()}>Показать расписание</button>
 			</Fragment>:<h3>Loading...</h3>}
 		</div>);
 }
@@ -67,8 +65,8 @@ function DataField(props) {
 	const group=props.data.group;
 
 	if (shedule===null) return(<h3>Выберите группу</h3>);
-	return(<div id="data-field">
-			{shedule.map((day,num)=><div key={num}>
+	return(<div id="shedule-data-field">
+			{shedule.map((day,num)=><div key={day+num}>
 				<DayDialog data={{type:"change",group:group,day:day,action:(e)=>actions.changeDay(day,e)}}/>
 				</div>)}
 			<DayDialog data={{type:"add",group:group,action:actions.addDay}}/>
@@ -90,7 +88,6 @@ function DayDialog(props) {
 		toLessons=[];
 	}
 	const [open,setOpen]=useState(false);
-
 
 	function DayDialogBody(props) {
 		const [date,setDate]=useState(toDate);
@@ -127,11 +124,11 @@ function DayDialog(props) {
 					<input value={date} className={(!isNaN(Date.parse(date)))?"ok":(date)?"error":"none"} onChange={(e)=>setDate(e.target.value)}></input>
 					<label>Занятия</label>
 					{lessons.map((e,num)=>
-						<h3 
+						<h4 
 							key={num}
 							onClick={()=>handleRemove(num)}
 							style={{textDecoration:(toRemove.includes(num))?"line-through":null}}
-						>{e}</h3>)}
+						>{e}</h4>)}
 					<div>
 						<input value={lesson} onChange={(e)=>setLesson(e.target.value)}></input>
 						<button id="shedule-plus-button" onClick={()=>handlePushLesson()}>+</button>
@@ -146,7 +143,7 @@ function DayDialog(props) {
 
 	if (type==="change") return(
 		<div id="change-day-dialog">
-			<h3 onClick={()=>setOpen(true)}>{props.data.day.date}</h3>
+			<h3 onClick={()=>setOpen(true)} className={(open)?"active":null}>{props.data.day.date}</h3>
 			{(open)?<DayDialogBody />
 			:
 			<Fragment>{props.data.day.body.map((e,num)=><h4 key={num}>{e}</h4>)}</Fragment>}	

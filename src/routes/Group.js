@@ -54,7 +54,7 @@ function SearchBar(props) {
 		const filterDate=new Date(date);
 		actions.setToShow(shedule.filter((e)=>{
 			const arr=e.date.split('-');
-			const date=new Date(arr[0]+'-'+(arr[1]-1)+'-'+arr[2]);
+			const date=new Date(arr[0]+'-'+arr[1]+'-'+arr[2]);
 			return (date>=filterDate);
 		}))
 	}
@@ -62,7 +62,7 @@ function SearchBar(props) {
 	return(<div id="group-search-bar">
 		<label>Дата</label>
 		<input value={date} onChange={(e)=>setDate(e.target.value)}></input>
-		<button onClick={()=>handleFilter()}>OK</button>
+		<button onClick={()=>handleFilter()}>Отфильтровать дату</button>
 		</div>);
 }
 
@@ -72,7 +72,7 @@ function DataField(props) {
 	return(<div id="group-data-field">
 		{shedule.map((day,num)=>{
 			const date=new Date(day.date);
-			const printDate=date.getFullYear()+'-'+date.getMonth()+'-'+date.getDate();
+			const printDate=date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate();
 			return(
 			<div id="data-element" key={''+num}>
 				<h3>{printDate}</h3>

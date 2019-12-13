@@ -1,3 +1,27 @@
 #data-element{
 	margin-top: 10px;
 }
+#group-page{
+	margin-top: 3px;
+	margin-left: 10px;
+}
+#group-page input{
+	margin-left: 10px;
+  	background-color: #3CBC8D;
+  	color: white;
+	border-radius: 3px;
+	height: 32px;
+}
+#group-page button{
+	margin-left: 10px;
+	background-color: white;
+	border-color: #3CBC8D;
+  	border-radius: 3px;
+  	transition-duration: 0.4s;
+	height: 32px;
+	width: 200px;
+}
+#group-page button:hover{
+	background-color: #3CBC8D;
+ 	color: white;	
+}

@@ -126,12 +126,12 @@ function ToolBar(props) {
 
 	return(<div id="tool-bar">
 		<button onClick={()=>handleAllLoad()}>Показать все группы</button>
-		<div>
+		<div id="tool-bar-inputs">
 			<label>Курсы:</label>
 			<input value={courses} onChange={(e)=>setCourses(e.target.value)}/>
 			<label>Факультеты:</label>
 			<input value={facultys} onChange={(e)=>setFacultys(e.target.value)}/>
-			<button onClick={()=>handleChoice()}>Показать выбранные</button>
+			<button style={{marginLeft:"10px"}} onClick={()=>handleChoice()}>Показать выбранные</button>
 		</div>
 		</div>);
 }
@@ -154,14 +154,14 @@ function DataField(props) {
 					changeGroup:changeGroup
 				}}
 			/>);
-		return arr;
+		return (arr);
 	}
 
-	return(<div id="data-field">
+	return(<div id="group-data-field">
 			{data.courses.map((course,num)=><div key={''+num}>
 				<h2>{course}-курс</h2>
 				{data.facultys.map((faculty,num_)=><div key={''+num+num_}>
-					<h3>Факультет {faculty}</h3>
+					<h3 id="group-data-block">Факультет {faculty}</h3>
 					<h4>Группы:</h4>
 					{showElements(course,faculty)}
 					<button onClick={(e)=>openDialog(course,faculty)}>Добавить группу</button>
@@ -176,7 +176,7 @@ function Element(props) {
 	const [open,setOpen]=useState(false);
 
 	return(<Fragment>
-		<h5 onClick={()=>setOpen(!open)}>{group}</h5>
+		<h5 className={(open)?"active":null} onClick={()=>setOpen(!open)}>{group}</h5>
 		{(open)?<GroupDialog 
 					data={{type:"local",
 							group:group,
@@ -213,7 +213,6 @@ function GroupDialog(props) {
 	},[students,group]);
 
 	function handleSave() {
-		if (!/^[BMS|Bk]$/g.test(edType)) return;
 		if (!/^[A-Z]\d+$/g.test(faculty)) return;
 		if (!/^\d+$/g.test(course)) return;
 		if (!/^\d+$/g.test(groupNum)) return;
@@ -233,10 +232,14 @@ function GroupDialog(props) {
 			>
 		<div id="group-dialog-body"  className={type}>
 		<label>Тип обучения</label>
-		<input 	value={edType} 
-			   	className={(/^[BMS|Bk]$/g.test(edType))?"ok":(edType)?"error":"none"}
+		<select value={edType}
 			   	onChange={(e)=>setEdType(e.target.value)}
-		></input>
+		>
+			<option value="B">B</option>
+			<option value="Bk">Bk</option>
+			<option value="S">S</option>
+			<option value="M">M</option>
+		</select>
 		<label>Факультет</label>
 		<input 	value={faculty} 
 				className={(/^[A-Z]\d+$/g.test(faculty))?"ok":(faculty)?"error":"none"} 
@@ -280,14 +283,14 @@ function StudentsList(props) {
 	}
 
 	return(<div id="students-list">
-		<h4 onClick={()=>setToShow(!toShow)} id="button" className={(toShow)?"true":"false"} >Студенты {(toShow)?'v':'>'}</h4>
+		<h4 onClick={()=>setToShow(!toShow)} id="button" >Студенты <nobr style={{paddingLeft:"35px"}} >{(toShow)?'v':'>'}</nobr></h4>
 		{(toShow)?<div id="list-body">
 			{(list)?list.map((e,num)=>
 				<Fragment key={num}>
-					<h5 
+					<h6 
 						style={{textDecoration:(toRemove.includes(num))?"line-through":null}} 
 						onClick={()=>handleRemove(num)}
-					>{e}</h5>
+					>{e}</h6>
 				</Fragment>)
 			:
 			<h4>Loading...</h4>}

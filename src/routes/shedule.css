@@ -1,12 +1,35 @@
 #data-table h2,h3,h4,h5,h6{
 	margin:0px;
 }
-#data-table h3{
-	color: blue;
-}
-#data-table h4{
-	color: green;
-}
 #data-table h6{
-	color: red;
+	color:red;
+}
+#data-table a{
+	color: #3CBC8D;
+	text-decoration: none;
+  	transition-duration: 0.4s;
+}
+#data-table a:hover{
+	background-color: #3CBC8D;
+	color: white;
+	text-decoration: none;
+}
+#search-bar input{
+	margin-left: 10px;
+  	background-color: #3CBC8D;
+  	color: white;
+	border-radius: 3px;
+	height: 32px;
+}
+#search-bar button{
+	margin-left: 10px;
+	background-color: white;
+	border-color: #3CBC8D;
+  	border-radius: 3px;
+  	transition-duration: 0.4s;
+	height: 32px;
+}
+#search-bar button:hover{
+	background-color: #3CBC8D;
+ 	color: white;	
 }
