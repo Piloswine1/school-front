@@ -35,7 +35,7 @@ function GroupPage(props) {
 		setToShow(newToShow);
 	}
 
-	return(<div id="group-page">
+	return(<div className="container" id="group-page">
 			<SearchBar data={{shedule:shedule,actions:{reset:reset,setToShow:setToShow}}}/>
 		    <DataField data={{shedule:toShow}} />
 		</div>);
@@ -46,7 +46,8 @@ function SearchBar(props) {
 	const actions=props.data.actions;
 	const [date,setDate]=useState("");
 
-	function handleFilter() {
+	function handleFilter(e) {
+		e.preventDefault();
 		if (date==="") {
 			actions.reset();
 			return;
@@ -59,11 +60,20 @@ function SearchBar(props) {
 		}))
 	}
 
-	return(<div id="group-search-bar">
-		<label>Дата</label>
-		<input value={date} onChange={(e)=>setDate(e.target.value)}></input>
-		<button onClick={()=>handleFilter()}>OK</button>
-		</div>);
+	return(<form onSubmit={handleFilter}>
+				<label htmlFor="curr-group-input">Дата:</label>
+				<div id="group-search-bar" className="input-group">
+				<input 
+				id="curr-group-input" 
+				value={date} 
+				className="form-control"
+				onChange={(e)=>setDate(e.target.value)}></input>
+				<div className="input-group-append">
+				    <button className="btn btn-outline-secondary" type="button" onClick={handleFilter}>OK</button>
+				</div>
+				</div>
+			</form>
+		);
 }
 
 function DataField(props) {

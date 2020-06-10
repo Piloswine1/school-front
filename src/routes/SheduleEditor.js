@@ -15,7 +15,7 @@ function SheduleEditor(props) {
 		updateShedule(group,oldDay,newDay);
 	}
 
-	return(<div id="shedule-editor-page">
+	return(<div className="container" id="shedule-editor-page">
 		<SearchBar data={{loadShedule:setGroupShedule,group:group,setGroup:setGroup}}/>
 		{(groupShedule)?<DataField data={{shedule:groupShedule,group:group,actions:{
 															addDay:addDay,
@@ -52,11 +52,15 @@ function SearchBar(props) {
 
 	return(<div id="search-bar">
 		{(groups)?<Fragment>
-				<select value={group} onChange={(e)=>setGroup(e.target.value)} id="group-select" >
-					<option value="">Выберите группу</option>
-					{groups.map((e,key)=><option key={key} value={e}>{e}</option>)}		 		
-				</select>
-				<button onClick={()=>handleLoadShedule()}>Показать расписание</button>
+				<div className="input-group mb-3">
+				  <select className="custom-select" value={group} onChange={(e)=>setGroup(e.target.value)} id="group-select">
+				    <option value="">Выберите группу</option>
+					{groups.map((e,key)=><option key={key} value={e}>{e}</option>)}
+				  </select>
+				  <div className="input-group-append">
+				    <button className="btn btn-outline-secondary" onClick={()=>handleLoadShedule()} type="button">Показать расписание</button>
+				  </div>
+				</div>	
 			</Fragment>:<h3>Loading...</h3>}
 		</div>);
 }
@@ -122,9 +126,13 @@ function DayDialog(props) {
 		}
 
 		return(	<div id="day-dialog-wrapper">
-				<div id="day-dialog-body">
-					<label>Дата</label>
-					<input value={date} className={(!isNaN(Date.parse(date)))?"ok":(date)?"error":"none"} onChange={(e)=>setDate(e.target.value)}></input>
+				<div className="form-group" id="day-dialog-body">
+					<label htmlFor="day-dialog-input" >Дата</label>
+					<input 
+					value={date} 
+					id="day-dialog-input" 
+					className={(!isNaN(Date.parse(date)))?"ok":(date)?"error":"none"} 
+					onChange={(e)=>setDate(e.target.value)}></input>
 					<label>Занятия</label>
 					{lessons.map((e,num)=>
 						<h3 
@@ -132,13 +140,15 @@ function DayDialog(props) {
 							onClick={()=>handleRemove(num)}
 							style={{textDecoration:(toRemove.includes(num))?"line-through":null}}
 						>{e}</h3>)}
-					<div>
-						<input value={lesson} onChange={(e)=>setLesson(e.target.value)}></input>
-						<button id="shedule-plus-button" onClick={()=>handlePushLesson()}>+</button>
+					<div className="input-group">
+						<input value={lesson} className="form-control" onChange={(e)=>setLesson(e.target.value)}></input>
+						<div className="input-group-append">
+							<button className="btn btn-primary" onClick={()=>handlePushLesson()}>+</button>
+						</div>
 					</div>
-					<div>
-						<button className="button" onClick={()=>handleAction()}>Сохранить</button>
-						<button className="button" onClick={()=>close()}>Закрыть</button>
+					<div className="container">
+						<button className="btn btn-primary" onClick={()=>handleAction()}>Сохранить</button>
+						<button className="btn btn-primary" onClick={()=>close()}>Закрыть</button>
 					</div>
 				</div>
 				</div>);
@@ -157,7 +167,7 @@ function DayDialog(props) {
 		<div id="add-day-dialog">
 			{(open)?<DayDialogBody />
 			:
-			<button onClick={()=>setOpen(true)}>Добавить день</button>}		
+			<button className="btn btn-primary" onClick={()=>setOpen(true)}>Добавить день</button>}		
 		</div>
 	);
 }

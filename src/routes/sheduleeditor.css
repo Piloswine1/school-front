@@ -29,3 +29,6 @@
 #day-dialog-wrapper input.error{
 	border-color: red;
 }
+#shedule-editor-page {
+	padding: 10px;
+}

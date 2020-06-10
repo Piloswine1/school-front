@@ -15,7 +15,7 @@ function Shedule(){
 			.catch((err)=>console.log(err));
 	});
 
-	return(<div>
+	return(<div className="container">
 			{(data)?
 				<ShedulePage data={data} />
 				:
@@ -38,12 +38,13 @@ function ShedulePage(props){
 
 	return(
 		<div id="ShedulePage">
-			<div id="search-bar">
+			<div className="form-group">
 	
-				<label>Курс:</label>
+				<label htmlFor="course-input" >Курс:</label>
 				<input 
-					className="course-input"
+					id="course-input"
 					list="course-select"
+					className="form-control"
 					value={course} 
 					onChange={(e)=>setCourse(e.target.value)} 
 		 		/>
@@ -51,18 +52,21 @@ function ShedulePage(props){
 		 			{data.courses.map((e,key)=><option key={key} value={e} />)}		 		
 		 		</datalist>
 	
-				<label>Факультет:</label>
+				<label htmlFor="faculty-input">Факультет:</label>
 				<input
-					className="faculty-input" 
+					id="faculty-input" 
 					list="faculty-select"
+					className="form-control"
 					value={faculty} 
 					onChange={(e)=>setFaculty(e.target.value)} 
 				 />
 		 		<datalist id="faculty-select" >
 		 			{data.facultys.map((e,key)=><option key={key} value={e} />)}	
 		 		</datalist>
-
-		 		<button onClick={()=>{
+		 	</div>
+		 	<div className="row">
+		 		<div className="col-auto">
+		 		<button className="btn btn-primary" onClick={()=>{
 		 			if (!isValidInput()) return;
 		 			const filterCourse=(course===""?data.courses:data.courses.filter((e)=>e===course));
 		 			const filterFaculty=(faculty===""?data.facultys:data.facultys.filter((e)=>e===faculty));
@@ -72,14 +76,17 @@ function ShedulePage(props){
 		 			}
 		 			setToDisplay(newToDisplay);
 		 		}}>Найти</button>
-
-		 		<button onClick={()=>setToDisplay({
+		 		</div>
+		 		<div className="col-auto">
+		 		<button className="btn btn-primary" onClick={()=>setToDisplay({
 		 			courses:data.courses,
 		 			facultys:data.facultys
 		 		})}>Показать все группы</button>
-
-			</div>
+		 		</div>
+		 	</div>
+		 	<div className="row">
 			<DataTable data={toDisplay} />
+			</div>
 		</div>
 	);
 }
@@ -102,6 +109,8 @@ function DataTable(props){
 	
 	return (<div 
 		id="data-table"
+		className="col"
+		style={{padding: 10}}
 		>
 		{data.courses.map((course,num)=>
 			<Fragment key={num}>

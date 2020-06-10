@@ -3,9 +3,9 @@ import {Link} from 'react-router-dom';
 
 function Home(argument) {
 		return(
-			<div>
+			<div className="container">
 			<Link to="/shedule">Расписание</Link>
-			<br />
+			<p/>
 			<Link to="/admin">Администратор</Link>
 			</div>
 			);

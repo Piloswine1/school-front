@@ -84,9 +84,11 @@ function Editor(props) {
 										setDialogGroup(null);
 									}}}
 						/>:null}
-		<button onClick={()=>reloadAction()}>Перезагрузить</button>
-		<ToolBar data={{meta:data,toShow:toShow,setToShow:setToShow}}/>
-		<DataField data={{toShow:toShow,groups:groups,changeGroup:changeGroup,openDialog:openDialogWithFields}}/>
+		<div  className="container">
+			<button className="btn btn-primary" onClick={()=>reloadAction()}>Перезагрузить</button>
+			<ToolBar data={{meta:data,toShow:toShow,setToShow:setToShow}}/>
+			<DataField data={{toShow:toShow,groups:groups,changeGroup:changeGroup,openDialog:openDialogWithFields}}/>
+		</div>
 		</Fragment>);
 }
 
@@ -125,13 +127,13 @@ function ToolBar(props) {
 	}
 
 	return(<div id="tool-bar">
-		<button onClick={()=>handleAllLoad()}>Показать все группы</button>
-		<div>
-			<label>Курсы:</label>
-			<input value={courses} onChange={(e)=>setCourses(e.target.value)}/>
-			<label>Факультеты:</label>
-			<input value={facultys} onChange={(e)=>setFacultys(e.target.value)}/>
-			<button onClick={()=>handleChoice()}>Показать выбранные</button>
+		<button className="btn btn-primary" onClick={()=>handleAllLoad()}>Показать все группы</button>
+		<div className="form-group">
+			<label htmlFor="" >Курсы:</label>
+			<input value={courses} className="form-control" onChange={(e)=>setCourses(e.target.value)}/>
+			<label htmlFor="" >Факультеты:</label>
+			<input value={facultys} className="form-control" onChange={(e)=>setFacultys(e.target.value)}/>
+			<button className="btn btn-primary" onClick={()=>handleChoice()}>Показать выбранные</button>
 		</div>
 		</div>);
 }
@@ -164,7 +166,7 @@ function DataField(props) {
 					<h3>Факультет {faculty}</h3>
 					<h4>Группы:</h4>
 					{showElements(course,faculty)}
-					<button onClick={(e)=>openDialog(course,faculty)}>Добавить группу</button>
+					<button className="btn btn-primary" onClick={(e)=>openDialog(course,faculty)}>Добавить группу</button>
 					</div>)}	
 			</div>)}
 		</div>);
@@ -228,13 +230,13 @@ function GroupDialog(props) {
 	}
 
 	return(<div id="group-dialog-wrapper"
-				className={type} 
+				className={type+" row"} 
 				style={(type==="global")?{top:window.scrollY}:null}
 			>
 		<div id="group-dialog-body"  className={type}>
 		<label>Тип обучения</label>
 		<input 	value={edType} 
-			   	className={(/^[BMS|Bk]$/g.test(edType))?"ok":(edType)?"error":"none"}
+			   	className={(/^[BMS]$|^Bk$/g.test(edType))?"ok":(edType)?"error":"none"}
 			   	onChange={(e)=>setEdType(e.target.value)}
 		></input>
 		<label>Факультет</label>
@@ -259,8 +261,8 @@ function GroupDialog(props) {
 							 handleRemove:handleRemove,
 							 students:(students)}}/>
 			<div>
-			<button className="button" onClick={()=>handleSave()}>Сохранить изменения</button>
-			<button className="button" onClick={()=>close()}>Закрыть</button>
+			<button className="btn btn-primary" onClick={()=>handleSave()}>Сохранить изменения</button>
+			<button className="btn btn-primary" onClick={()=>close()}>Закрыть</button>
 			</div>
 		</div>
 		</div>);
@@ -269,30 +271,31 @@ function GroupDialog(props) {
 function StudentsList(props) {
 	const [list,setList]=[props.data.students,props.data.addStudentAction];
 	const [toRemove,handleRemove]=[props.data.toRemove,props.data.handleRemove];
-	const [toShow,setToShow]=useState(false);
 
 	function AddStudent() {
 		const [name,setName]=useState("");
-		return (<Fragment>
+		return (<div className="col">
 			<input value={name} onChange={(e)=>setName(e.target.value)} />
-			<button id="group-plus-button" onClick={()=>setList(name)}>+</button>
-		</Fragment>);
+			<button id="group-plus-button" className="btn btn-primary" onClick={()=>setList(name)}>+</button>
+		</div>);
 	}
 
 	return(<div id="students-list">
-		<h4 onClick={()=>setToShow(!toShow)} id="button" className={(toShow)?"true":"false"} >Студенты {(toShow)?'v':'>'}</h4>
-		{(toShow)?<div id="list-body">
+		<button className="btn btn-primary" type="button" data-toggle="collapse" data-target="#list-body" aria-expanded="false" aria-controls="collapseExample">
+		  Студенты
+		</button>
+		<div className="collapse" id="list-body">
 			{(list)?list.map((e,num)=>
-				<Fragment key={num}>
+				<div className="col" key={num}>
 					<h5 
 						style={{textDecoration:(toRemove.includes(num))?"line-through":null}} 
 						onClick={()=>handleRemove(num)}
 					>{e}</h5>
-				</Fragment>)
+				</div>)
 			:
 			<h4>Loading...</h4>}
 			<AddStudent />
-		</div>:null}
+		</div>
 	</div>);
 }
 
